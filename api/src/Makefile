@@ -6,11 +6,18 @@ NO_BOOT ?= no
 LIB_NAME:= libmvnc
 OUT := $(LIB_NAME).so.0
 OBJDIR := obj-$(ARCH)
-INSTALLDIR := ${DESTDIR}/usr/local
+PREFIX ?= /usr/local
+INSTALLDIR ?= ${DESTDIR}${PREFIX}
+LIBDIR_NAME ?= lib
+INCDIR_NAME ?= include
+INCLUDE_LIBUSB := $(shell pkg-config libusb-1.0 --cflags)
+LIBS_LIBUSB := $(shell pkg-config libusb-1.0 --libs)
+INSTALL_LIBDIR := ${INSTALLDIR}/${LIBDIR_NAME}
+INSTALL_INCDIR := ${INSTALLDIR}/${INCDIR_NAME}
 PYTHON3DIST := $(shell python3 -c "import site; print(site.getsitepackages()[0])")
 PYTHON2DIST := $(shell python -c "import site; print(site.getsitepackages()[0])")
 LINK_HIGHCLASS ?= no
-VERSION_NUMBER=`cat ./version.txt`
+VERSION_NUMBER=$(shell cat ./version.txt)
 SRCS := \
 	mvnc_api.c \
 	fp16.c
@@ -42,18 +49,30 @@ ifeq ($(NO_RESET), yes)
 endif
 CFLAGS+=-DDEVICE_SHELL_ENABLED
 
-LIBS += -lpthread -lusb-1.0 -ldl
+LIBS += -lpthread -ldl
+
+ifndef LIBS_LIBUSB
+	INCLUDES += -lusb-1.0
+else
+	INCLUDES += ${LIBS_LIBUSB}
+endif
 
 #Allow compiling without highclass
 ifeq ($(LINK_HIGHCLASS),no)
 CFLAGS+= -DEXCLUDE_HIGHCLASS
 else
-LIBS+= -lmvnc_highclass -L$(INSTALLDIR)/lib/
+LIBS+= -lmvnc_highclass -L$(INSTALLDIR)/${LIBDIR_NAME}/
 endif
 INCLUDES := \
 	-I. \
-	-I../include \
-	-I$(SYSROOT)/usr/include/libusb-1.0 \
+	-I../include
+
+ifndef INCLUDE_LIBUSB
+	INCLUDES += -I$(SYSROOT)/usr/include/libusb-1.0
+else
+	INCLUDES += ${INCLUDE_LIBUSB}
+endif
+
 
 CFLAGS += -O2 -Wall -pthread -fPIC -MMD -MP
 LDFLAGS += -shared
@@ -82,15 +101,15 @@ get_mvcmd:
 	@./get_mvcmd.sh
 
 basicinstall: $(OBJDIR)/$(OUT) get_mvcmd
-	mkdir -p $(INSTALLDIR)/include/
-	mkdir -p $(INSTALLDIR)/include/mvnc2
-	mkdir -p $(INSTALLDIR)/lib/
-	cp $(OBJDIR)/$(OUT) $(INSTALLDIR)/lib/
-	ln -fs $(OUT) $(INSTALLDIR)/lib/$(LIB_NAME).so
-	cp ../include/mvnc.h $(INSTALLDIR)/include/mvnc2
-	ln -fs $(INSTALLDIR)/include/mvnc2/mvnc.h $(INSTALLDIR)/include/mvnc.h
-	mkdir -p $(INSTALLDIR)/lib/mvnc
-	cp mvnc/MvNCAPI-*.mvcmd $(INSTALLDIR)/lib/mvnc/
+	mkdir -p ${INSTALL_INCDIR}
+	mkdir -p ${INSTALL_INCDIR}/mvnc2
+	mkdir -p ${INSTALL_LIBDIR}/${LIBDIR_NAME}
+	cp $(OBJDIR)/$(OUT) ${INSTALL_LIBDIR}/
+	ln -fs $(OUT) ${INSTALL_LIBDIR}/$(LIB_NAME).so
+	cp ../include/mvnc.h ${INSTALL_INCDIR}/mvnc2
+	cd ${INSTALL_INCDIR} && ln -fs mvnc2/mvnc.h mvnc.h
+	mkdir -p ${INSTALL_LIBDIR}/mvnc
+	cp mvnc/MvNCAPI-*.mvcmd ${INSTALL_LIBDIR}/mvnc/
 	mkdir -p ${DESTDIR}/etc/udev/rules.d/
 	cp 97-usbboot.rules ${DESTDIR}/etc/udev/rules.d/
 
@@ -108,11 +127,11 @@ postinstall:
 install: basicinstall pythoninstall postinstall
 
 uninstall:
-	rm -f $(INSTALLDIR)/lib/$(OUT)
-	rm -f $(INSTALLDIR)/lib/$(LIB_NAME).so
-	rm -f $(INSTALLDIR)/include/mvnc.h
-	rm -f $(INSTALLDIR)/include/mvnc2/mvnc.h
-	rm -f $(INSTALLDIR)/lib/mvnc/MvNCAPI-*.mvcmd
+	rm -f ${INSTALL_LIBDIR}/$(OUT)
+	rm -f ${INSTALL_LIBDIR}/$(LIB_NAME).so
+	rm -f ${INSTALL_INCDIR}/mvnc.h
+	rm -f ${INSTALL_INCDIR}/mvnc2/mvnc.h
+	rm -f ${INSTALL_LIBDIR}/mvnc/MvNCAPI-*.mvcmd
 	rm -rf ${DESTDIR}$(PYTHON3DIST)/mvnc
 	rm -rf ${DESTDIR}$(PYTHON2DIST)/mvnc
 	rm -f ${DESTDIR}/etc/udev/rules.d/97-usbboot.rules
