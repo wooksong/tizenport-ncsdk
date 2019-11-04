@@ -2,6 +2,7 @@ ARCH := $(shell uname -m)
 
 NO_RESET ?= no
 NO_BOOT ?= no
+WITH_TIZEN ?= no
 
 LIB_NAME:= libmvnc
 OUT := $(LIB_NAME).so.0
@@ -108,7 +109,9 @@ libmvnc_pkgconfig:
 	install -m 644 libmvnc.pc.tmp ${INSTALL_PKGCONFIGDIR}/libmvnc.pc
 
 get_mvcmd:
+ifeq ($(strip $(WITH_TIZEN)), no)
 	@./get_mvcmd.sh
+endif
 
 basicinstall: $(OBJDIR)/$(OUT) get_mvcmd libmvnc_pkgconfig
 	mkdir -p ${INSTALL_INCDIR}
