@@ -1,0 +1,11 @@
+# Package Information for pkg-config, for Intel®  Movidius™  Neural Compute SDK
+
+libdir=@LIB_INSTALL_DIR@
+includedir=@INCLUDE_INSTALL_DIR@
+
+Name: libmvnc
+Description: Dev Kit of MVNCSDK
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lmvnc
+Cflags: -I${includedir}/mvnc

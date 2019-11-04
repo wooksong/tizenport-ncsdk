@@ -14,6 +14,7 @@ INCLUDE_LIBUSB := $(shell pkg-config libusb-1.0 --cflags)
 LIBS_LIBUSB := $(shell pkg-config libusb-1.0 --libs)
 INSTALL_LIBDIR := ${INSTALLDIR}/${LIBDIR_NAME}
 INSTALL_INCDIR := ${INSTALLDIR}/${INCDIR_NAME}
+INSTALL_PKGCONFIGDIR := ${INSTALLDIR}/${LIBDIR_NAME}/pkgconfig
 PYTHON3DIST := $(shell python3 -c "import site; print(site.getsitepackages()[0])")
 PYTHON2DIST := $(shell python -c "import site; print(site.getsitepackages()[0])")
 LINK_HIGHCLASS ?= no
@@ -81,7 +82,7 @@ OBJS := $(SRCS:%.c=$(OBJDIR)/%.o)
 OBJS += $(XLINK_SRCS:%.c=$(OBJDIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-.PHONY: get_mvcmd
+.PHONY: get_mvcmd libmvnc_pkgconfig
 
 all: $(OBJDIR)/$(OUT) get_mvcmd
 
@@ -97,13 +98,22 @@ $(OBJDIR)/%.o: %.c
 
 -include $(DEPS)
 
+libmvnc_pkgconfig:
+	rm -f libmvnc.pc.tmp
+	cp -f libmvnc.pc.in libmvnc.pc.tmp
+	sed -i 's|@VERSION@|$(VERSION_NUMBER)|g' libmvnc.pc.tmp
+	sed -i 's|@LIB_INSTALL_DIR@|${PREFIX}/${LIBDIR_NAME}|g' libmvnc.pc.tmp
+	sed -i 's|@INCLUDE_INSTALL_DIR@|${PREFIX}/${INCDIR_NAME}|g' libmvnc.pc.tmp
+	mkdir -p ${INSTALL_PKGCONFIGDIR}
+	install -m 644 libmvnc.pc.tmp ${INSTALL_PKGCONFIGDIR}/libmvnc.pc
+
 get_mvcmd:
 	@./get_mvcmd.sh
 
-basicinstall: $(OBJDIR)/$(OUT) get_mvcmd
+basicinstall: $(OBJDIR)/$(OUT) get_mvcmd libmvnc_pkgconfig
 	mkdir -p ${INSTALL_INCDIR}
 	mkdir -p ${INSTALL_INCDIR}/mvnc2
-	mkdir -p ${INSTALL_LIBDIR}/${LIBDIR_NAME}
+	mkdir -p ${INSTALL_LIBDIR}
 	cp $(OBJDIR)/$(OUT) ${INSTALL_LIBDIR}/
 	ln -fs $(OUT) ${INSTALL_LIBDIR}/$(LIB_NAME).so
 	cp ../include/mvnc.h ${INSTALL_INCDIR}/mvnc2
@@ -142,3 +152,5 @@ clean:
 	rm -rf $(OBJDIR)
 	rm -f $(LIB_NAME).so
 	if [ -d "mvnc" ]; then find mvnc/ -type f -delete ; fi
+	find -name "libmvnc.pc.tmp" -delete
+	find -name "libmvnc.pc" -delete
