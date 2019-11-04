@@ -88,7 +88,7 @@ basicinstall: $(OBJDIR)/$(OUT) get_mvcmd
 	cp $(OBJDIR)/$(OUT) $(INSTALLDIR)/lib/
 	ln -fs $(OUT) $(INSTALLDIR)/lib/$(LIB_NAME).so
 	cp ../include/mvnc.h $(INSTALLDIR)/include/mvnc2
-	ln -fs $(INSTALLDIR)/include/mvnc2/mvnc.h $(INSTALLDIR)/include/mvnc.h 
+	ln -fs $(INSTALLDIR)/include/mvnc2/mvnc.h $(INSTALLDIR)/include/mvnc.h
 	mkdir -p $(INSTALLDIR)/lib/mvnc
 	cp mvnc/MvNCAPI-*.mvcmd $(INSTALLDIR)/lib/mvnc/
 	mkdir -p ${DESTDIR}/etc/udev/rules.d/
@@ -113,7 +113,6 @@ uninstall:
 	rm -f $(INSTALLDIR)/include/mvnc.h
 	rm -f $(INSTALLDIR)/include/mvnc2/mvnc.h
 	rm -f $(INSTALLDIR)/lib/mvnc/MvNCAPI-*.mvcmd
-#	rm -rf $(INSTALLDIR)/lib/mvnc
 	rm -rf ${DESTDIR}$(PYTHON3DIST)/mvnc
 	rm -rf ${DESTDIR}$(PYTHON2DIST)/mvnc
 	rm -f ${DESTDIR}/etc/udev/rules.d/97-usbboot.rules
