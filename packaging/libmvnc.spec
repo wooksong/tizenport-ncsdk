@@ -11,9 +11,11 @@ Version:    2.10.01.01
 Release:    0
 Group:      Development/Libraries
 Packager:   Wook Song <wook16.song@samsung.com>
-License:    Apache-2.0
+License:    Apache-2.0 and BSD-3-Clause and MIT
 Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.manifest
+Source1001: LICENSE.BSD-3-Clause
+Source1002: LICENSE.MIT
 Requires(post): %{_sbindir}/udevadm %{_sbindir}/ldconfig
 Requires(postun): %{_sbindir}/udevadm %{_sbindir}/ldconfig
 Requires: mvnc-2450-firmware
@@ -39,6 +41,8 @@ This package provides headers and other miscellaneous files required to use NCSD
 %prep
 %setup -q
 cp %{SOURCE1} .
+cp %{SOURCE1001} .
+cp %{SOURCE1002} .
 
 %build
 pushd api/src
@@ -78,6 +82,8 @@ rm -f %{_libdir}/%{name}.so
 %files
 %manifest %{name}.manifest
 %license LICENSE
+%license LICENSE.BSD-3-Clause
+%license LICENSE.MIT
 %{_libdir}/libmvnc.so.*
 /etc/udev/rules.d/*
 %{_libdir}/mvnc/*
