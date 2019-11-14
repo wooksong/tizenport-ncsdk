@@ -14,7 +14,6 @@ Packager:   Wook Song <wook16.song@samsung.com>
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.manifest
-Source1000: %{_fw_archive_prefix}_%{_fw_version}.zip
 Requires(post): %{_sbindir}/udevadm %{_sbindir}/ldconfig
 Requires(postun): %{_sbindir}/udevadm %{_sbindir}/ldconfig
 Requires: mvnc-2450-firmware
@@ -28,15 +27,6 @@ the legacy SDK provided for users of the Intel® Movidius™ Neural Compute Stic
 (Intel® Movidius™ NCS). New users of this device as well as all users of the newer
 Intel® Neural Compute Stick 2 should install the OpenVINO™ Toolkit.
 
-%package fw-ma2450-784
-License: Intel Simplified Software License (ISSL)
-Summary: Firmware for Intel®  Movidius™ Neural Compute (ma2450)
-Group: Development/Libraries
-Provides: mvnc-2450-firmware
-
-%description fw-ma2450-784
-This package contains a firmware binary for  Intel®  Movidius™  Neural Compute Stick (ma2450).
-
 %package devel
 License: Apache-2.0
 Summary: Development package to use NCSDK
@@ -49,7 +39,6 @@ This package provides headers and other miscellaneous files required to use NCSD
 %prep
 %setup -q
 cp %{SOURCE1} .
-unzip %{SOURCE1000}
 
 %build
 pushd api/src
@@ -57,7 +46,6 @@ pushd api/src
 popd
 
 %install
-cp -rf mvnc ./api/src
 pushd api/src
 %{__make} \
     DESTDIR=%{?buildroot:%{buildroot}} \
@@ -99,8 +87,3 @@ rm -f %{_libdir}/%{name}.so
 %license LICENSE
 %{_libdir}/pkgconfig/*.pc
 %{_includedir}/*
-
-%files fw-ma2450-784
-%manifest %{name}.manifest
-%license ISSL.txt
-%{_libdir}/mvnc/*
